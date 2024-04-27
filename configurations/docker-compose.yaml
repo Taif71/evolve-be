@@ -1,0 +1,68 @@
+version: "3.8"
+services:
+  nginx:
+    image: nginx
+    container_name: nginx
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    networks:
+      afra_net:
+        ipv4_address: 192.169.2.2
+
+  afra_frontend:
+    user: root
+    container_name: afra_frontend
+    image: afra_frontend_image
+    build:
+      context: ../../frontend
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8000:3000"
+    # volumes:
+    #   - ../../dayiri-admin:/app
+    networks:
+      afra_net:
+        ipv4_address: 192.169.2.5
+
+  afra_backend:
+    user: root
+    container_name: afra_backend
+    image: afra_backend_image
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - 4000:4000
+    # volumes:
+    #   - ../:/app
+    environment:
+      - PORT=4000
+      - MODE=DEV
+      - NODE_ENV=development
+      - RUN_MIGRATIONS=true
+      - SECRET_KEY_JWT=eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiU3VwZXIgQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IiQyYSQwOCQ3ZWhzMWtRWXU1YkZMRUtSUWw2Y0VlUURHMXVIcjZMWkVycWpPNFNMNGxaMmpSVDNpNC5kUyIsImV4cCI6MTYxNDcwOTQ5OCwiaWF0IjoxNjE0NzA5NDk4fQ.NBPiLlPHByxSpXZzGblYJ_rWGjvyGtRDUPViR34kFmI
+      - FE_HOST=http://localhost:3000
+      - DB_CONNECTION=mongodb+srv://taifdroid:3K5p2top3BZ2jcd7@cluster0.wyw3odg.mongodb.net/users
+      - GOOGLE_CLIENT_ID=1098609260618-4223kktahnvos5k5hkbnt780r52r26ss.apps.googleusercontent.com
+      - GOOGLE_SECRET=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
+      - OAUTH_GOOGLE_REDIRECT_URL=http://localhost:1223/user/google/login/redirect
+      - EMAIL_PORT=587
+      - AWS_REGION=us-west-2
+      - FILE_SPACE_PROVIDER=AWS_S3
+      - DO_FOLDER_NAME=test
+    networks:
+      afra_net:
+        ipv4_address: 192.169.2.6
+
+networks:
+  afra_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.169.2.0/24
+          gateway: 192.169.2.1
